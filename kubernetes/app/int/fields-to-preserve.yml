@@ -1,4 +1,2 @@
-resources:
-  - unchanged-resource.yaml
 commonLabels:
   environment: int

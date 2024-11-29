@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - master
-
+    paths:
+      - kubernetes/app/dev/**
 permissions:
   contents: write
 
