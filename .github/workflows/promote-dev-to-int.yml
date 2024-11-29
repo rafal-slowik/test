@@ -8,6 +8,7 @@ on:
       - kubernetes/app/dev/**
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   promote:
@@ -70,15 +71,15 @@ jobs:
           git push origin promotion/dev-to-int
 
       # Step 5: Create a Pull Request
-#      - name: Create Pull Request
-#        uses: peter-evans/create-pull-request@v4
-#        with:
-#          branch: promotion/dev-to-int
-#          commit-message: Promote changes from dev to int overlay
-#          title: "[Promotion] Dev to Int Overlay"
-#          base: master
-#          body: |
-#            This PR promotes changes from the dev overlay to the int overlay,
-#            while preserving specified fields in the int overlay.
-#          labels: promote
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: promotion/dev-to-int
+          commit-message: Promote changes from dev to int overlay
+          title: "[Promotion] Dev to Int Overlay"
+          base: master
+          body: |
+            This PR promotes changes from the dev overlay to the int overlay,
+            while preserving specified fields in the int overlay.
+          labels: promote
 
