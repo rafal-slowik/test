@@ -1,0 +1,53 @@
+name: Promote Dev to Int Overlay
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up yq for YAML processing
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      # Step 3: Synchronize Overlays (Exclude Fields)
+      - name: Synchronize Dev to Int
+        run: |
+          # Sync changes from dev to int
+          rsync -av --delete kubernetes/app/dev/ kubernetes/app/int/ --exclude 'fields-to-preserve.yml'
+
+          # Reapply preserved fields using yq
+          yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' kubernetes/app/int/fields-to-preserve.yml kubernetes/app/int/kustomization.yaml > kubernetes/app/int/kustomization.yaml.updated
+          mv kubernetes/app/int/kustomization.yaml.updated kubernetes/app/int/kustomization.yaml
+
+      # Step 4: Commit and Push Changes
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git checkout -b promotion/dev-to-int
+          git add kubernetes/app/int/
+          git commit -m "Promote changes from dev to int overlay"
+          git push origin promotion/dev-to-int
+
+      # Step 5: Create a Pull Request
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          branch: promotion/dev-to-int
+          commit-message: Promote changes from dev to int overlay
+          title: "[Promotion] Dev to Int Overlay"
+          body: |
+            This PR promotes changes from the dev overlay to the int overlay,
+            while preserving specified fields in the int overlay.
+          labels: promote
