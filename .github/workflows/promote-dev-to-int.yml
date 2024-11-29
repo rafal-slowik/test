@@ -57,7 +57,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git checkout -b promotion/dev-to-int
-          git add kubernetes/app/int/
+          git add kubernetes/app/int/**
           
           echo ""
           echo ""
@@ -80,6 +80,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: promotion/dev-to-int
           commit-message: Promote changes from dev to int overlay
           title: "[Promotion] Dev to Int Overlay"
