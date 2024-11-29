@@ -27,7 +27,7 @@ jobs:
           rsync -av --delete kubernetes/app/dev/ kubernetes/app/int/ --exclude 'fields-to-preserve.yml'
 
           # Reapply preserved fields using yq
-          yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' kubernetes/app/int/fields-to-preserve.yml kubernetes/app/int/kustomization.yml > kubernetes/app/int/kustomization.yaml.updated
+          yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' kubernetes/app/int/fields-to-preserve.yml kubernetes/app/int/kustomization.yml > kubernetes/app/int/kustomization.yml.updated
           mv kubernetes/app/int/kustomization.yml.updated kubernetes/app/int/kustomization.yml
 
       # Step 4: Commit and Push Changes
