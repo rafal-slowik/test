@@ -49,7 +49,9 @@ jobs:
           branch: promotion/dev-to-int
           commit-message: Promote changes from dev to int overlay
           title: "[Promotion] Dev to Int Overlay"
+          base: master
           body: |
             This PR promotes changes from the dev overlay to the int overlay,
             while preserving specified fields in the int overlay.
           labels: promote
+
