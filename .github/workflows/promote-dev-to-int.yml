@@ -69,8 +69,14 @@ jobs:
                   
           git commit -m "Promote changes from dev to int overlay"
           git push origin promotion/dev-to-int
+          git fetch --all
 
-      # Step 5: Create a Pull Request
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          ref: promotion/dev-to-int
+
+        # Step 5: Create a Pull Request
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
