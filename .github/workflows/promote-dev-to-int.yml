@@ -30,6 +30,8 @@ jobs:
         run: |
           # Sync changes from dev to int
           rsync -av --delete kubernetes/app/dev/ kubernetes/app/int/ --exclude 'fields-to-preserve.yml'
+          
+          cat kubernetes/app/int/kustomization.yml
 
           # Reapply preserved fields using yq
           yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' kubernetes/app/int/fields-to-preserve.yml kubernetes/app/int/kustomization.yml > kubernetes/app/int/kustomization.yml.updated
