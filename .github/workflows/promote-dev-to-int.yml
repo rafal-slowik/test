@@ -19,7 +19,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          token: '${{ secrets.PAT }}'
+          fetch-depth: 0  # Ensure full history for branch creation
 
       # Step 2: Set up yq for YAML processing
       - name: Install yq
