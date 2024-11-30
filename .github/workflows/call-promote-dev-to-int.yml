@@ -10,7 +10,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  discussions: write
 
 jobs:
   trigger-promotion:
@@ -32,3 +31,4 @@ jobs:
           kubernetes/app/int/kustomization.yml \
           > kubernetes/app/int/kustomization.yml.updated
         mv kubernetes/app/int/kustomization.yml.updated kubernetes/app/int/kustomization.yml
+    secrets: inherit

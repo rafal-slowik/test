@@ -35,6 +35,9 @@ on:
         description: "Custom script for overlay synchronization"
         required: true
         type: string
+    secrets:
+      PAT: # Example of a secret passed down
+        required: true
 
 permissions:
   contents: write
