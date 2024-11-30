@@ -93,5 +93,4 @@ jobs:
             --head ${{ inputs.branch_name }} \
             --title "${{ inputs.pr_title }}" \
             --body "${{ inputs.pr_body }}" \
-            --label "promotion" \
-            --label "automated" \
+            --label "automated promotion" \
