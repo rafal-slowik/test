@@ -1,0 +1,94 @@
+name: Promote Overlay
+
+on:
+  workflow_call:
+    inputs:
+      source_path:
+        description: "Path to the source overlay"
+        required: true
+        type: string
+      destination_path:
+        description: "Path to the destination overlay"
+        required: true
+        type: string
+      branch_name:
+        description: "Branch name for the promotion"
+        required: true
+        type: string
+      base_branch:
+        description: "Base branch for the pull request"
+        required: true
+        type: string
+      commit_message:
+        description: "Commit message for the promotion"
+        required: true
+        type: string
+      pr_title:
+        description: "Title of the pull request"
+        required: true
+        type: string
+      pr_body:
+        description: "Body of the pull request"
+        required: true
+        type: string
+      sync_script:
+        description: "Custom script for overlay synchronization"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensure full history for branch creation
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Synchronize Overlays
+        run: |
+          echo "Running custom sync script..."
+          ${{ inputs.sync_script }}
+
+      - name: Delete Existing Branch
+        run: |
+          if git ls-remote --heads origin ${{ inputs.branch_name }}; then
+            git push origin --delete ${{ inputs.branch_name }}
+          fi
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git checkout -b ${{ inputs.branch_name }}
+          git add ${{ inputs.destination_path }}/**
+          git commit -m "${{ inputs.commit_message }}"
+          git push origin ${{ inputs.branch_name }}
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.PAT }}" | gh auth login --with-token
+
+      - name: Create Pull Request
+        run: |
+          gh pr create \
+            --base ${{ inputs.base_branch }} \
+            --head ${{ inputs.branch_name }} \
+            --title "${{ inputs.pr_title }}" \
+            --body "${{ inputs.pr_body }}"
+            --label "promotion" \
+            --label "automated" \

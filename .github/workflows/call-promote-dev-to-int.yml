@@ -1,0 +1,29 @@
+name: Trigger Promote Overlay
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - kubernetes/app/dev/**
+
+jobs:
+  trigger-promotion:
+    uses: ./.github/workflows/promote-overlay.yml
+    with:
+      source_path: kubernetes/app/dev
+      destination_path: kubernetes/app/int
+      branch_name: promotion/dev-to-int
+      base_branch: master
+      commit_message: "Promote changes from dev to int overlay"
+      pr_title: "[Promotion] Dev to Int Overlay"
+      pr_body: |
+        This PR promotes changes from the dev overlay to the int overlay.
+        Preserved fields remain intact.
+      sync_script: |
+        rsync -av --delete kubernetes/app/dev/ kubernetes/app/int/ --exclude 'fields-to-preserve.yml'
+        yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' \
+          kubernetes/app/int/fields-to-preserve.yml \
+          kubernetes/app/int/kustomization.yml \
+          > kubernetes/app/int/kustomization.yml.updated
+        mv kubernetes/app/int/kustomization.yml.updated kubernetes/app/int/kustomization.yml
