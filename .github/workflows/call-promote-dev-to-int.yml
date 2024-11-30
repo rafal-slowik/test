@@ -7,6 +7,11 @@ on:
     paths:
       - kubernetes/app/dev/**
 
+permissions:
+  contents: write
+  pull-requests: write
+  discussions: write
+
 jobs:
   trigger-promotion:
     uses: ./.github/workflows/promote-overlay.yml
