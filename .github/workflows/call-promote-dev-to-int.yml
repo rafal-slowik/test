@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   trigger-promotion:
-    uses: ./.github/workflows/promote-overlay.yml
+    uses: ./.github/workflows/promote-overlay-template.yml
     with:
       source_path: kubernetes/app/dev
       destination_path: kubernetes/app/int
@@ -25,10 +25,32 @@ jobs:
         This PR promotes changes from the dev overlay to the int overlay.
         Preserved fields remain intact.
       sync_script: |
-        rsync -av --delete kubernetes/app/dev/ kubernetes/app/int/ --exclude 'fields-to-preserve.yml'
-        yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' \
-          kubernetes/app/int/fields-to-preserve.yml \
-          kubernetes/app/int/kustomization.yml \
-          > kubernetes/app/int/kustomization.yml.updated
-        mv kubernetes/app/int/kustomization.yml.updated kubernetes/app/int/kustomization.yml
+        rsync -av --delete kubernetes/app/dev/ kubernetes/app/int/ --exclude 'preserve-*.yml'
+
+      # Set the base directory
+        base_dir="kubernetes/app/int"
+        
+        # Find all files not starting with "preserve-" and having a corresponding "preserve-" file
+        find "$base_dir" -type f -name "*.yml" ! -name "preserve-*.yml" | while read -r file; do
+          # Extract the base filename
+          filename=$(basename "$file")
+          preserve_file="$base_dir/preserve-$filename"
+      
+          # Check if the corresponding "preserve-" file exists
+          if [[ -f "$preserve_file" ]]; then
+            echo "Processing file: $filename with preserve file: $preserve_file"
+
+            # Run yq to merge and update the file
+            yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' \
+              "$preserve_file" \
+              "$file" > "$file.updated"
+            mv "$file.updated" "$file"
+          
+            echo "Updated $file"
+          else
+            echo "Skipping $filename (no corresponding preserve file found)"
+          fi
+        done
+
+
     secrets: inherit
