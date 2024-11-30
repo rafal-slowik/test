@@ -92,6 +92,6 @@ jobs:
             --base ${{ inputs.base_branch }} \
             --head ${{ inputs.branch_name }} \
             --title "${{ inputs.pr_title }}" \
-            --body "${{ inputs.pr_body }}"
+            --body "${{ inputs.pr_body }}" \
             --label "promotion" \
             --label "automated" \
