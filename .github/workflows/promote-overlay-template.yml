@@ -31,10 +31,6 @@ on:
         description: "Body of the pull request"
         required: true
         type: string
-      sync_script:
-        description: "Custom script for overlay synchronization"
-        required: true
-        type: string
     secrets:
       PAT: # Example of a secret passed down
         required: true
@@ -61,7 +57,25 @@ jobs:
       - name: Synchronize Overlays
         run: |
           echo "Running custom sync script..."
-          ${{ inputs.sync_script }}
+          
+          base_dest_dir="${{ inputs.destination_path }}"
+          base_src_dir=${{ inputs.source_path }}
+          rsync -av --delete "${base_src_dir%/}/" "${base_dest_dir%/}/" --exclude 'preserve-*.yml'
+          
+          find "$base_dest_dir" -type f -name "*.yml" ! -name "preserve-*.yml" | while read -r file; do
+            filename=$(basename "$file")
+            preserve_file="$base_dest_dir/preserve-$filename"
+          
+            if [[ -f "$preserve_file" ]]; then
+              echo "Processing file: $filename with preserve file: $preserve_file"
+              yq eval-all 'select(fileIndex == 1) * select(fileIndex == 0)' \
+                "$preserve_file" \
+                "$file" > "$file.updated"
+              mv "$file.updated" "$file"
+            else
+              echo "Skipping $filename (no corresponding preserve file found)"
+            fi
+          done
 
       - name: Delete Existing Branch
         run: |
